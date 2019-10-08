@@ -3,8 +3,8 @@
     "version": "0.0.0",
     "description": "Dynamic Web Server using Node JS",
     "author": {
-        "name": "",
-        "email": ""
+        "name": "Kristina Harfmann",
+        "email": "harf6802@stthomas.edu"
     },
     "contributors": [
         {
@@ -19,7 +19,7 @@
     "main": "server.js",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/KristinaHarfmann/CISC-375-assignment2"
     },
     "dependencies": {
         "express": "^4.17.1",
