@@ -31,7 +31,6 @@ app.use(express.static(public_dir));
 app.get('/', (req, res) => {
     ReadFile(path.join(template_dir, 'index.html')).then((template) => {
         let response = template;
-		//response = response.toString();
 		db.all("SELECT * FROM Consumption WHERE year = ? ORDER BY state_abbreviation", "2017", (err, rows) => {
 			var i;
 			var coal = 0;
@@ -39,7 +38,7 @@ app.get('/', (req, res) => {
 			var nuc = 0;
 			var pet = 0;
 			var ren = 0;
-			var tableItem = ""
+			var tableItem = "";
 			for (i = 0; i < rows.length; i++)
 			{
 				coal = coal + rows[i].coal;
@@ -68,8 +67,37 @@ app.get('/', (req, res) => {
 app.get('/year/:selected_year', (req, res) => {
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
         let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
+		var year = '"' + req.path.substring(6,req.path.length) + '"';
+        db.all("SELECT * FROM Consumption WHERE year = ? ORDER BY state_abbreviation", year, (err, rows) => {
+			var i;
+			var coal = 0;
+			var nat = 0;
+			var nuc = 0;
+			var pet = 0;
+			var ren = 0;
+			var stateTotal = 0;
+			var tableItem = "";
+			for (i = 0; i < rows.length; i++)
+			{
+				coal = coal + rows[i].coal;
+				nat = nat + rows[i].natural_gas;
+				nuc = nuc + rows[i].nuclear;
+				pet = pet + rows[i].petroleum;
+				ren = ren + rows[i].renewable;
+				stateTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
+				tableItem = tableItem + " <tr>  <td>" + rows[i].state_abbreviation + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + stateTotal + "</td>\n </tr>";
+			}
+			response = response.replace("National Snapshot", "National Snapshot " + year);//populate header
+			response = response.replace("US Energy Consumption", year + " US Energy Consumption");//populate title
+			response = response.replace("var year", "var year = " + year);//populate year
+			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
+			response = response.replace("coal_counts", "coal_counts = " + coal);
+			response = response.replace("natural_gas_counts", "natural_gas_counts = " + nat);
+			response = response.replace("nuclear_counts", "nuclear_counts = " + nuc);
+			response = response.replace("petroleum_counts", "petroleum_counts = " + pet);
+			response = response.replace("renewable_counts", "renewable_counts = " + ren);
+			 WriteHtml(res, response);
+		});
     }).catch((err) => {
         Write404Error(res);
     });
@@ -79,8 +107,37 @@ app.get('/year/:selected_year', (req, res) => {
 app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
+		var state = '"'+ req.path.substring(7,req.path.length) + '"';
+         db.all("SELECT * FROM Consumption WHERE state_abbreviation = ? ORDER BY year", state, (err, rows) => {
+			var i;
+			var coal = new Array();
+			var nat = new Array();
+			var nuc = new Array();
+			var pet = new Array();
+			var ren = new Array();
+			var yearTotal = 0;
+			var tableItem = "";
+			for (i = 0; i < rows.length; i++)
+			{
+				coal[i] = rows[i].coal;
+				nat[i] = rows[i].natural_gas;
+				nuc[i] = rows[i].nuclear;
+				pet[i] = rows[i].petroleum;
+				ren[i] = rows[i].renewable;
+				yearTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
+				tableItem = tableItem + " <tr>  <td>" + rows[i].year + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + yearTotal + "</td>\n </tr>";
+			}
+			response = response.replace("Yearly Snapshot", state + " Yearly Snapshot");//populate header
+			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
+			response = response.replace("var state", "var state = " + state);//populate state
+			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
+			response = response.replace("coal_counts", "coal_counts = [" + coal + ']');
+			response = response.replace("natural_gas_counts", "natural_gas_counts = [" + nat + ']');
+			response = response.replace("nuclear_counts", "nuclear_counts = [" + nuc + ']');
+			response = response.replace("petroleum_counts", "petroleum_counts = [" + pet + ']');
+			response = response.replace("renewable_counts", "renewable_counts = [" + ren + ']');
+			 WriteHtml(res, response);
+		});
     }).catch((err) => {
         Write404Error(res);
     });
