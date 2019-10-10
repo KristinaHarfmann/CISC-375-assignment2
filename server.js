@@ -31,8 +31,34 @@ app.use(express.static(public_dir));
 app.get('/', (req, res) => {
     ReadFile(path.join(template_dir, 'index.html')).then((template) => {
         let response = template;
+		//response = response.toString();
+		db.all("SELECT * FROM Consumption WHERE year = ? ORDER BY state_abbreviation", "2017", (err, rows) => {
+			var i;
+			var coal = 0;
+			var nat = 0;
+			var nuc = 0;
+			var pet = 0;
+			var ren = 0;
+			var tableItem = ""
+			for (i = 0; i < rows.length; i++)
+			{
+				coal = coal + rows[i].coal;
+				nat = nat + rows[i].natural_gas;
+				nuc = nuc + rows[i].nuclear;
+				pet = pet + rows[i].petroleum;
+				ren = ren + rows[i].renewable;
+				tableItem = tableItem + " <tr>  <td>" + rows[i].state_abbreviation + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n </tr>";
+			}
+			response = response.replace("<!-- Data to be inserted here -->" , tableItem);
+			response = response.replace("coal_count", "coal_count = " + coal);
+			response = response.replace("natural_gas_count", "natural_gas_count = " + nat);
+			response = response.replace("nuclear_count", "nuclear_count = " + nuc);
+			response = response.replace("petroleum_count", "petroleum_count = " + pet);
+			response = response.replace("renewable_count", "renewable_count = " + ren);
+			 WriteHtml(res, response);
+		});
         // modify `response` here
-        WriteHtml(res, response);
+       
     }).catch((err) => {
         Write404Error(res);
     });
