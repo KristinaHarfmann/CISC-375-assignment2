@@ -67,7 +67,7 @@ app.get('/', (req, res) => {
 app.get('/year/:selected_year', (req, res) => {
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
         let response = template;
-		var year = '"' + req.path.substring(6,req.path.length) + '"';
+		var year = req.path.substring(6,req.path.length);
         db.all("SELECT * FROM Consumption WHERE year = ? ORDER BY state_abbreviation", year, (err, rows) => {
 			var i;
 			var coal = 0;
@@ -91,11 +91,11 @@ app.get('/year/:selected_year', (req, res) => {
 			response = response.replace("US Energy Consumption", year + " US Energy Consumption");//populate title
 			response = response.replace("var year", "var year = " + year);//populate year
 			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
-			response = response.replace("coal_counts", "coal_counts = " + coal);
-			response = response.replace("natural_gas_counts", "natural_gas_counts = " + nat);
-			response = response.replace("nuclear_counts", "nuclear_counts = " + nuc);
-			response = response.replace("petroleum_counts", "petroleum_counts = " + pet);
-			response = response.replace("renewable_counts", "renewable_counts = " + ren);
+			response = response.replace("coal_count", "coal_count = " + coal);
+			response = response.replace("natural_gas_count", "natural_gas_count = " + nat);
+			response = response.replace("nuclear_count", "nuclear_count = " + nuc);
+			response = response.replace("petroleum_count", "petroleum_count = " + pet);
+			response = response.replace("renewable_count", "renewable_count = " + ren);
 			 WriteHtml(res, response);
 		});
     }).catch((err) => {
@@ -107,8 +107,8 @@ app.get('/year/:selected_year', (req, res) => {
 app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
-		var state = '"'+ req.path.substring(7,req.path.length) + '"';
-         db.all("SELECT * FROM Consumption WHERE state_abbreviation = ? ORDER BY year", state, (err, rows) => {
+		var state = req.path.substring(7,req.path.length).toString();
+         db.all("SELECT c.*, s.state_name FROM Consumption c INNER JOIN States s ON c.state_abbreviation = s.state_abbreviation WHERE s.state_abbreviation = ? ORDER BY year", state, (err, rows) => {
 			var i;
 			var coal = new Array();
 			var nat = new Array();
@@ -117,6 +117,7 @@ app.get('/state/:selected_state', (req, res) => {
 			var ren = new Array();
 			var yearTotal = 0;
 			var tableItem = "";
+			var stateName = "";
 			for (i = 0; i < rows.length; i++)
 			{
 				coal[i] = rows[i].coal;
@@ -124,19 +125,20 @@ app.get('/state/:selected_state', (req, res) => {
 				nuc[i] = rows[i].nuclear;
 				pet[i] = rows[i].petroleum;
 				ren[i] = rows[i].renewable;
+				stateName = rows[i].state_name;
 				yearTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
 				tableItem = tableItem + " <tr>  <td>" + rows[i].year + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + yearTotal + "</td>\n </tr>";
 			}
-			response = response.replace("Yearly Snapshot", state + " Yearly Snapshot");//populate header
+			response = response.replace("Yearly Snapshot", stateName + " Yearly Snapshot");//populate header
 			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
-			response = response.replace("var state", "var state = " + state);//populate state
+			response = response.replace("var state", "var state = '" + state + "'");//populate state
 			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
 			response = response.replace("coal_counts", "coal_counts = [" + coal + ']');
 			response = response.replace("natural_gas_counts", "natural_gas_counts = [" + nat + ']');
 			response = response.replace("nuclear_counts", "nuclear_counts = [" + nuc + ']');
 			response = response.replace("petroleum_counts", "petroleum_counts = [" + pet + ']');
 			response = response.replace("renewable_counts", "renewable_counts = [" + ren + ']');
-			 WriteHtml(res, response);
+			WriteHtml(res, response);
 		});
     }).catch((err) => {
         Write404Error(res);
