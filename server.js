@@ -149,8 +149,85 @@ app.get('/state/:selected_state', (req, res) => {
 app.get('/energy-type/:selected_energy_type', (req, res) => {
     ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
         let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
+		var energyType = req.path.substring(13,req.path.length).toString();
+		var flag1 = 0;
+		var flag2 = 0;
+         db.all("SELECT * FROM Consumption c ORDER BY c.state_abbreviation, year", (err, rows) => {
+			var i;
+			var energy_counts;
+			for (i = 0; i < rows.length; i++)
+			{
+				if(i == 0)
+				{//first one
+					energy_counts = "{" + rows[i].state_abbreviation + ": [" + rows[i][energyType];
+				}
+				else if(i + 1 == rows.length)
+				{//last one
+					energy_counts = energy_counts + ", " + rows[i][energyType] + "] }"
+				}
+				else if(rows[i].state_abbreviation == rows[i - 1].state_abbreviation && rows[i].state_abbreviation == rows[i + 1].state_abbreviation)
+				{//same state before and after
+					energy_counts = energy_counts + ", " + rows[i][energyType];
+				}
+				else if(rows[i].state_abbreviation != rows[i - 1].state_abbreviation && rows[i].state_abbreviation == rows[i + 1].state_abbreviation)
+				{//first of state
+					energy_counts = energy_counts + rows[i].state_abbreviation + ": [" + rows[i][energyType];
+				}
+				else
+				{//end of state
+					energy_counts = energy_counts + ", " + rows[i][energyType] + "], "; 
+				}
+				
+			}
+			response = response.replace("Consumption Snapshot", energyTypes + " Consumption Snapshot");//populate header
+			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
+			response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate state
+			response = response.replace("energy_counts", "energy_counts = " + energy_counts);
+			flag1 = 1;
+		});	//all
+		
+		db.all("SELECT * FROM Consumption c ORDER BY year, c.state_abbreviation", (err, row) => {
+				var i = 0;
+				var tableItem = "";
+				var totalYear = 0;
+				for (i = 0; i < row.length; i++)
+				{
+					if(i == 0)
+					{//first one
+						tableItem = tableItem + " <tr> <td>" + row[i].year + "</td> <td>" + row[i][energyType] + "</td>";
+						totalYear = totalYear + row[i][energyType];
+					}
+					else if(i + 1 == row.length)
+					{//last one
+						totalYear = totalYear + row[i][energyType];
+						tableItem = tableItem + "<td>" + row[i][energyType] + "</td> <td>" + totalYear + "</td> </tr>\n";
+						totalYear = 0;
+					}
+					else if(row[i].year == row[i - 1].year && row[i].year == row[i + 1].year )
+					{//same year before and after
+						totalYear = totalYear + row[i][energyType];
+						tableItem = tableItem + "<td>" + row[i][energyType] + "</td>";
+					}
+					else if(row[i].year != row[i - 1].year && row[i].year == row[i + 1].year)
+					{//first of year
+						totalYear = totalYear + row[i][energyType];
+						tableItem = tableItem + "<tr> <td>" + row[i].year + "</td> <td>" + row[i][energyType] + "</td>";
+					}
+					else 
+					{//end of year
+						totalYear = totalYear + row[i][energyType];
+						tableItem = tableItem + "<td>" + row[i][energyType] + "</td> <td>" + totalYear + "</td> </tr>\n"; 
+						totalYear = 0;
+					}
+				}
+				response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
+				flag2 = 1;
+				WriteHtml(res, response);
+		});//all
+		//if(flag1 == 1 && flag2 ==1)
+		//{
+			
+		//}
     }).catch((err) => {
         Write404Error(res);
     });
