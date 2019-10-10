@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
 			 WriteHtml(res, response);
 		});
         // modify `response` here
-       
+
     }).catch((err) => {
         Write404Error(res);
     });
@@ -108,7 +108,12 @@ app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
 		var state = req.path.substring(7,req.path.length).toString();
-         db.all("SELECT c.*, s.state_name FROM Consumption c INNER JOIN States s ON c.state_abbreviation = s.state_abbreviation WHERE s.state_abbreviation = ? ORDER BY year", state, (err, rows) => {
+        var allStatesAbbreviations = ["AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"]
+        var allStateNames = ["Alaska", "Alabama", "Arkansas", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusettes", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", "Montana", "North Carolina", "North Dakota", "Nebraska", "New Hampshire", "New Jersey", "New Mexico", "Nevada", "New York", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Virginia", "Vermont", "Washington", "Wisconsin", "West Virginia", "Wyoming"];
+        var stateIndex = 0;
+        var nextState = "";
+        var prevState = "";
+        db.all("SELECT c.*, s.state_name FROM Consumption c INNER JOIN States s ON c.state_abbreviation = s.state_abbreviation WHERE s.state_abbreviation = ? ORDER BY year", state, (err, rows) => {
 			var i;
 			var coal = new Array();
 			var nat = new Array();
@@ -129,6 +134,19 @@ app.get('/state/:selected_state', (req, res) => {
 				yearTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
 				tableItem = tableItem + " <tr>  <td>" + rows[i].year + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + yearTotal + "</td>\n </tr>";
 			}
+            stateIndex = allStateNames.indexOf(stateName);
+            if (stateIndex == 0){
+                nextState = allStatesAbbreviations[stateIndex + 1];
+                prevState = allStatesAbbreviations[50];
+            }
+            else if (stateIndex == 50){
+                nextState = allStatesAbbreviations[0];
+                prevState = allStatesAbbreviations[stateIndex - 1];
+            }
+            else {
+                nextState = allStatesAbbreviations[stateIndex + 1];
+                prevState = allStatesAbbreviations[stateIndex - 1];
+            }
 			response = response.replace("Yearly Snapshot", stateName + " Yearly Snapshot");//populate header
 			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
 			response = response.replace("var state", "var state = '" + state + "'");//populate state
@@ -138,6 +156,12 @@ app.get('/state/:selected_state', (req, res) => {
 			response = response.replace("nuclear_counts", "nuclear_counts = [" + nuc + ']');
 			response = response.replace("petroleum_counts", "petroleum_counts = [" + pet + ']');
 			response = response.replace("renewable_counts", "renewable_counts = [" + ren + ']');
+            response = response.replace("noimage.jpg", stateName + ".jpg");
+            response = response.replace("No Image", "Image of "+ stateName)
+            response = response.replace("prevhref=\"\"", "href=\"/state/"+prevState+"\"");
+            response = response.replace("nexthref=\"\"", "href=\"/state/"+nextState+"\"");
+            response = response.replace("prevXX", prevState);
+            response = response.replace("nextXX", nextState);
 			WriteHtml(res, response);
 		});
     }).catch((err) => {
