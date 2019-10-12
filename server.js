@@ -48,15 +48,14 @@ app.get('/', (req, res) => {
 				ren = ren + rows[i].renewable;
 				tableItem = tableItem + " <tr>  <td>" + rows[i].state_abbreviation + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n </tr>";
 			}
-			response = response.replace("<!-- Data to be inserted here -->" , tableItem);
+			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
 			response = response.replace("coal_count", "coal_count = " + coal);
 			response = response.replace("natural_gas_count", "natural_gas_count = " + nat);
 			response = response.replace("nuclear_count", "nuclear_count = " + nuc);
 			response = response.replace("petroleum_count", "petroleum_count = " + pet);
 			response = response.replace("renewable_count", "renewable_count = " + ren);
-			 WriteHtml(res, response);
+			WriteHtml(res, response);
 		});
-        // modify `response` here
 
     }).catch((err) => {
         Write404Error(res);
@@ -87,9 +86,9 @@ app.get('/year/:selected_year', (req, res) => {
 				stateTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
 				tableItem = tableItem + " <tr>  <td>" + rows[i].state_abbreviation + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + stateTotal + "</td>\n </tr>";
 			}
-			response = response.replace("National Snapshot", "National Snapshot " + year);//populate header
+			response = response.replace("National Snapshot",  year + " National Snapshot");//populate header
 			response = response.replace("US Energy Consumption", year + " US Energy Consumption");//populate title
-			response = response.replace("var year", "var year = " + year);//populate year
+			response = response.replace("var year", "var year = " + year);//populate year var
 			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
 			response = response.replace("coal_count", "coal_count = " + coal);
 			response = response.replace("natural_gas_count", "natural_gas_count = " + nat);
@@ -107,7 +106,7 @@ app.get('/year/:selected_year', (req, res) => {
 app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
-		var state = req.path.substring(7,req.path.length).toString();
+		var state = req.path.substring(7,req.path.length).toString();//stateAbbreviation
         var allStatesAbbreviations = ["AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"]
         var allStateNames = ["Alaska", "Alabama", "Arkansas", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusettes", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", "Montana", "North Carolina", "North Dakota", "Nebraska", "New Hampshire", "New Jersey", "New Mexico", "Nevada", "New York", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Virginia", "Vermont", "Washington", "Wisconsin", "West Virginia", "Wyoming"];
         var stateIndex = 0;
@@ -130,7 +129,7 @@ app.get('/state/:selected_state', (req, res) => {
 				nuc[i] = rows[i].nuclear;
 				pet[i] = rows[i].petroleum;
 				ren[i] = rows[i].renewable;
-				stateName = rows[i].state_name;
+				stateName = rows[i].state_name;//State full name
 				yearTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
 				tableItem = tableItem + " <tr>  <td>" + rows[i].year + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + yearTotal + "</td>\n </tr>";
 			}
@@ -147,7 +146,7 @@ app.get('/state/:selected_state', (req, res) => {
                 nextState = allStatesAbbreviations[stateIndex + 1];
                 prevState = allStatesAbbreviations[stateIndex - 1];
             }
-			response = response.replace("Yearly Snapshot", stateName + " Yearly Snapshot");//populate header
+			response = response.replace("Yearly Snapshot", stateName + " Yearly Snapshot");//populate header with Full Name
 			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
 			response = response.replace("var state", "var state = '" + state + "'");//populate state
 			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
@@ -156,8 +155,8 @@ app.get('/state/:selected_state', (req, res) => {
 			response = response.replace("nuclear_counts", "nuclear_counts = [" + nuc + ']');
 			response = response.replace("petroleum_counts", "petroleum_counts = [" + pet + ']');
 			response = response.replace("renewable_counts", "renewable_counts = [" + ren + ']');
-            response = response.replace("noimage.jpg", stateName + ".jpg");
-            response = response.replace("No Image", "Image of "+ stateName)
+            response = response.replace("noimage.jpg", stateName + ".jpg");//update image
+            response = response.replace("No Image", "Image of "+ stateName)//changes alt
             response = response.replace("prevhref=\"\"", "href=\"/state/"+prevState+"\"");
             response = response.replace("nexthref=\"\"", "href=\"/state/"+nextState+"\"");
             response = response.replace("prevXX", prevState);
@@ -203,10 +202,16 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				}
 				
 			}
-			response = response.replace("Consumption Snapshot", energyTypes + " Consumption Snapshot");//populate header
+			var energyName = energyType.charAt(0).toUpperCase() + energyType.slice(1);
+			if( energyName == "Natural_gas"){
+				energyName = "Natural Gas";
+			}
+			response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
 			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
-			response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate state
-			response = response.replace("energy_counts", "energy_counts = " + energy_counts);
+			response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
+			response = response.replace("noimage.jpg", energyType + ".jpg");//update image
+            response = response.replace("No Image", "Image of "+ energyType)//changes alt
+			response = response.replace("energy_counts", "energy_counts = " + energy_counts);//populate energy_counts var
 			flag1 = 1;
 		});	//all
 		
