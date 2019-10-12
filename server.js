@@ -66,7 +66,8 @@ app.get('/', (req, res) => {
 app.get('/year/:selected_year', (req, res) => {
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
         let response = template;
-		var year = req.path.substring(6,req.path.length);
+		var year = Number(req.path.substring(6,req.path.length), 10);
+        //var allYears = [1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017];
         db.all("SELECT * FROM Consumption WHERE year = ? ORDER BY state_abbreviation", year, (err, rows) => {
 			var i;
 			var coal = 0;
@@ -76,6 +77,9 @@ app.get('/year/:selected_year', (req, res) => {
 			var ren = 0;
 			var stateTotal = 0;
 			var tableItem = "";
+            var nextYear = 0;
+            var prevYear = 0;
+
 			for (i = 0; i < rows.length; i++)
 			{
 				coal = coal + rows[i].coal;
@@ -86,6 +90,19 @@ app.get('/year/:selected_year', (req, res) => {
 				stateTotal = rows[i].coal + rows[i].natural_gas + rows[i].nuclear + rows[i].petroleum + rows[i].renewable;
 				tableItem = tableItem + " <tr>  <td>" + rows[i].state_abbreviation + "</td>\n <td>" + rows[i].coal + "</td>\n <td>" + rows[i].natural_gas + "</td>\n <td>" + rows[i].nuclear + "</td>\n <td>" + rows[i].petroleum + "</td>\n <td>"  + rows[i].renewable + "</td>\n <td>" + stateTotal + "</td>\n </tr>";
 			}
+
+            if (year == 2017){
+                nextYear = 1960;
+                prevYear = 2016;
+            }
+            else if (year == 1960){
+                nextYear = 1961;
+                prevYear = 2017;
+            }
+            else{
+                nextYear = year + 1;
+                prevYear = year - 1;
+            }
 			response = response.replace("National Snapshot",  year + " National Snapshot");//populate header
 			response = response.replace("US Energy Consumption", year + " US Energy Consumption");//populate title
 			response = response.replace("var year", "var year = " + year);//populate year var
@@ -95,7 +112,11 @@ app.get('/year/:selected_year', (req, res) => {
 			response = response.replace("nuclear_count", "nuclear_count = " + nuc);
 			response = response.replace("petroleum_count", "petroleum_count = " + pet);
 			response = response.replace("renewable_count", "renewable_count = " + ren);
-			 WriteHtml(res, response);
+            response = response.replace("prevhref=\"\"", "href=\"/year/"+prevYear+"\"");
+            response = response.replace("nexthref=\"\"", "href=\"/year/"+nextYear+"\"");
+            response = response.replace("Prev", prevYear);
+            response = response.replace("Next", nextYear);
+			WriteHtml(res, response);
 		});
     }).catch((err) => {
         Write404Error(res);
@@ -159,8 +180,8 @@ app.get('/state/:selected_state', (req, res) => {
             response = response.replace("No Image", "Image of "+ stateName)//changes alt
             response = response.replace("prevhref=\"\"", "href=\"/state/"+prevState+"\"");
             response = response.replace("nexthref=\"\"", "href=\"/state/"+nextState+"\"");
-            response = response.replace("prevXX", prevState);
-            response = response.replace("nextXX", nextState);
+            response = response.replace("Prev", prevState);
+            response = response.replace("Next", nextState);
 			WriteHtml(res, response);
 		});
     }).catch((err) => {
@@ -175,6 +196,12 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 		var energyType = req.path.substring(13,req.path.length).toString();
 		var flag1 = 0;
 		var flag2 = 0;
+        var allEnergyTypes = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
+        var energyIndex;
+        var nextEnergy;
+        var prevEnergy;
+        var prevEnergyLink = "";
+        var nextEnergyLink = "";
          db.all("SELECT * FROM Consumption c ORDER BY c.state_abbreviation, year", (err, rows) => {
 			var i;
 			var energy_counts;
@@ -198,23 +225,48 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				}
 				else
 				{//end of state
-					energy_counts = energy_counts + ", " + rows[i][energyType] + "], "; 
+					energy_counts = energy_counts + ", " + rows[i][energyType] + "], ";
 				}
-				
+
 			}
 			var energyName = energyType.charAt(0).toUpperCase() + energyType.slice(1);
 			if( energyName == "Natural_gas"){
 				energyName = "Natural Gas";
 			}
+            energyIndex = allEnergyTypes.indexOf(energyName);
+            if (energyIndex == 0){
+                nextEnergy = allEnergyTypes[energyIndex + 1];
+                prevEnergy = allEnergyTypes[4];
+            }
+            else if (energyIndex == 4){
+                nextEnergy = allEnergyTypes[0];
+                prevEnergy = allEnergyTypes[energyIndex - 1];
+            }
+            else {
+                nextEnergy = allEnergyTypes[energyIndex + 1];
+                prevEnergy = allEnergyTypes[energyIndex - 1];
+            }
+            nextEnergyLink = nextEnergy.charAt(0).toLowerCase() + nextEnergy.slice(1);
+            prevEnergyLink = prevEnergy.charAt(0).toLowerCase() + prevEnergy.slice(1);
+            if (nextEnergyLink == 'natural Gas'){
+                nextEnergyLink = nextEnergyLink.substring(0, 7) + '_g' + nextEnergyLink.substring(9);
+            }
+            if (prevEnergyLink == 'natural Gas'){
+                prevEnergyLink = prevEnergyLink.substring(0, 7) + '_g' + prevEnergyLink.substring(9);
+            }
 			response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
 			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
 			response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
 			response = response.replace("noimage.jpg", energyType + ".jpg");//update image
             response = response.replace("No Image", "Image of "+ energyType)//changes alt
 			response = response.replace("energy_counts", "energy_counts = " + energy_counts);//populate energy_counts var
+            response = response.replace("prevhref=\"\"", "href=\"/energy-type/"+prevEnergyLink+"\"");
+            response = response.replace("nexthref=\"\"", "href=\"/energy-type/"+nextEnergyLink+"\"");
+            response = response.replace("Prev", prevEnergy);
+            response = response.replace("Next", nextEnergy);
 			flag1 = 1;
 		});	//all
-		
+
 		db.all("SELECT * FROM Consumption c ORDER BY year, c.state_abbreviation", (err, row) => {
 				var i = 0;
 				var tableItem = "";
@@ -242,10 +294,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 						totalYear = totalYear + row[i][energyType];
 						tableItem = tableItem + "<tr> <td>" + row[i].year + "</td> <td>" + row[i][energyType] + "</td>";
 					}
-					else 
+					else
 					{//end of year
 						totalYear = totalYear + row[i][energyType];
-						tableItem = tableItem + "<td>" + row[i][energyType] + "</td> <td>" + totalYear + "</td> </tr>\n"; 
+						tableItem = tableItem + "<td>" + row[i][energyType] + "</td> <td>" + totalYear + "</td> </tr>\n";
 						totalYear = 0;
 					}
 				}
@@ -255,7 +307,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 		});//all
 		//if(flag1 == 1 && flag2 ==1)
 		//{
-			
+
 		//}
     }).catch((err) => {
         Write404Error(res);
