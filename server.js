@@ -168,7 +168,7 @@ app.get('/state/:selected_state', (req, res) => {
                 prevState = allStatesAbbreviations[stateIndex - 1];
             }
 			response = response.replace("Yearly Snapshot", stateName + " Yearly Snapshot");//populate header with Full Name
-			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
+			response = response.replace("US Energy Consumption", state + " Energy Consumption");//populate title
 			response = response.replace("var state", "var state = '" + state + "'");//populate state
 			response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
 			response = response.replace("coal_counts", "coal_counts = [" + coal + ']');
@@ -177,7 +177,7 @@ app.get('/state/:selected_state', (req, res) => {
 			response = response.replace("petroleum_counts", "petroleum_counts = [" + pet + ']');
 			response = response.replace("renewable_counts", "renewable_counts = [" + ren + ']');
             response = response.replace("noimage.jpg", stateName + ".jpg");//update image
-            response = response.replace("No Image", "Image of "+ stateName)//changes alt
+            response = response.replace("No Image", "Image of "+ stateName);//changes alt
             response = response.replace("prevhref=\"\"", "href=\"/state/"+prevState+"\"");
             response = response.replace("nexthref=\"\"", "href=\"/state/"+nextState+"\"");
             response = response.replace("Prev", prevState);
@@ -255,10 +255,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 prevEnergyLink = prevEnergyLink.substring(0, 7) + '_g' + prevEnergyLink.substring(9);
             }
 			response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
-			//response = response.replace("US Energy Consumption", state + " US Energy Consumption");//populate title
+			response = response.replace("US Energy Consumption", "US " + energyName + " Consumption");//populate title
 			response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
 			response = response.replace("noimage.jpg", energyType + ".jpg");//update image
-            response = response.replace("No Image", "Image of "+ energyType)//changes alt
+            response = response.replace("No Image", "Image of "+ energyType);//changes alt
 			response = response.replace("energy_counts", "energy_counts = " + energy_counts);//populate energy_counts var
             response = response.replace("prevhref=\"\"", "href=\"/energy-type/"+prevEnergyLink+"\"");
             response = response.replace("nexthref=\"\"", "href=\"/energy-type/"+nextEnergyLink+"\"");
