@@ -69,7 +69,7 @@ app.get('/year/:selected_year', (req, res) => {
 		var year = Number(req.path.substring(6,req.path.length), 10);
         var allYears = [1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017];
 		var flag = 0;
-		
+
 		for(var i = 0; i < allYears.length; i++)
 		{
 			if(year == allYears[i])
@@ -77,11 +77,11 @@ app.get('/year/:selected_year', (req, res) => {
 				flag = 1;
 			}
 		}
-		
+
 		if(flag != 1)
 		{
 			res.writeHead(404, {'Content-Type' : 'text/plain'});
-			res.write('Oh no! Couldn\'t find that year');
+			res.write('ERROR: No data for year ' + year);
 			res.end();
 		}
 		else
@@ -153,7 +153,7 @@ app.get('/state/:selected_state', (req, res) => {
         var nextState = "";
         var prevState = "";
 		var flag = 0;
-		
+
 		for(var i = 0; i < allStatesAbbreviations.length; i++)
 		{
 			if(state == allStatesAbbreviations[i])
@@ -161,11 +161,11 @@ app.get('/state/:selected_state', (req, res) => {
 				flag = 1;
 			}
 		}
-		
+
 		if(flag != 1)
 		{
 			res.writeHead(404, {'Content-Type' : 'text/plain'});
-			res.write('Oh no! Couldn\'t find that state');
+			res.write('ERROR: No data for state ' + state);
 			res.end();
 		}
 		else
@@ -243,7 +243,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 		if( energyName == "Natural_gas"){
 			energyName = "Natural Gas";
 		}
-		
+
 		for(var i = 0; i < allEnergyTypes.length; i++)
 		{
 			if(energyName == allEnergyTypes[i])
@@ -251,11 +251,11 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				flag = 1;
 			}
 		}
-		
+
 		if(flag != 1)
 		{
 			res.writeHead(404, {'Content-Type' : 'text/plain'});
-			res.write('Oh no! Couldn\'t find that energy type');
+			res.write('ERROR: No data for energy type ' + energyType);
 			res.end();
 		}
 		else
@@ -362,10 +362,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 						resolve(tableItem);
 						//response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
 						//WriteHtml(res, response);
-			
+
 				});//all
 			});//p2
-			
+
 			Promise.all([p1,p2]).then((results) => {
 					response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
 					response = response.replace("US Energy Consumption", "US " + energyName + " Consumption");//populate title
