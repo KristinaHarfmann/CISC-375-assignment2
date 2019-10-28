@@ -311,16 +311,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 						prevEnergyLink = prevEnergyLink.substring(0, 7) + '_g' + prevEnergyLink.substring(9);
 					}
 					resolve({energy_counts: energy_counts, prevEnergyLink: prevEnergyLink, nextEnergyLink : nextEnergyLink, prevEnergy:prevEnergy, nextEnergy:nextEnergy});
-					/*response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
-					response = response.replace("US Energy Consumption", "US " + energyName + " Consumption");//populate title
-					response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
-					response = response.replace("noimage.jpg", energyType + ".jpg");//update image
-					response = response.replace("No Image", "Image of "+ energyType);//changes alt
-					response = response.replace("energy_counts", "energy_counts = " + energy_counts);//populate energy_counts var
-					response = response.replace("prevhref=\"\"", "href=\"/energy-type/"+prevEnergyLink+"\"");
-					response = response.replace("nexthref=\"\"", "href=\"/energy-type/"+nextEnergyLink+"\"");
-					response = response.replace("Prev", prevEnergy);
-					response = response.replace("Next", nextEnergy);*/
+
 				});	//all
 			});//p1
 
@@ -360,23 +351,21 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 							}
 						}
 						resolve(tableItem);
-						//response = response.replace("<!-- Data to be inserted here -->" , tableItem);//populate table
-						//WriteHtml(res, response);
 
 				});//all
 			});//p2
 
 			Promise.all([p1,p2]).then((results) => {
-					response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
-					response = response.replace("US Energy Consumption", "US " + energyName + " Consumption");//populate title
-					response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
-					response = response.replace("noimage.jpg", energyType + ".jpg");//update image
-					response = response.replace("No Image", "Image of "+ energyType);//changes alt
-			response = response.replace("energy_counts", "energy_counts = " + results[0].energy_counts);//populate energy_counts var
-					response = response.replace("prevhref=\"\"", "href=\"/energy-type/"+results[0].prevEnergyLink+"\"");//populate prev link
-					response = response.replace("nexthref=\"\"", "href=\"/energy-type/"+results[0].nextEnergyLink+"\"");//populate next link
-					response = response.replace("Prev", results[0].prevEnergy);//populate prev energy
-					response = response.replace("Next", results[0].nextEnergy);//populate next energy
+				response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
+				response = response.replace("US Energy Consumption", "US " + energyName + " Consumption");//populate title
+				response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
+				response = response.replace("noimage.jpg", energyType + ".jpg");//update image
+				response = response.replace("No Image", "Image of "+ energyType);//changes alt
+			    response = response.replace("energy_counts", "energy_counts = " + results[0].energy_counts);//populate energy_counts var
+				response = response.replace("prevhref=\"\"", "href=\"/energy-type/"+results[0].prevEnergyLink+"\"");//populate prev link
+				response = response.replace("nexthref=\"\"", "href=\"/energy-type/"+results[0].nextEnergyLink+"\"");//populate next link
+				response = response.replace("Prev", results[0].prevEnergy);//populate prev energy
+				response = response.replace("Next", results[0].nextEnergy);//populate next energy
 				response = response.replace("<!-- Data to be inserted here -->" , results[1]);//populate table
 				WriteHtml(res, response);
 			});//promise all
