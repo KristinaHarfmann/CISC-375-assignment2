@@ -358,7 +358,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 			Promise.all([p1,p2]).then((results) => {
 				response = response.replace("Consumption Snapshot", energyName + " Consumption Snapshot");//populate header
 				response = response.replace("US Energy Consumption", "US " + energyName + " Consumption");//populate title
-				response = response.replace("var energy_type", "var energy_type = '" + energyType + "'");//populate energy_type
+				response = response.replace("var energy_type", "var energy_type = '" + energyName + "'");//populate energy_type
 				response = response.replace("noimage.jpg", energyType + ".jpg");//update image
 				response = response.replace("No Image", "Image of "+ energyType);//changes alt
 			    response = response.replace("energy_counts", "energy_counts = " + results[0].energy_counts);//populate energy_counts var
